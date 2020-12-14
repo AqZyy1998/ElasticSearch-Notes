@@ -127,3 +127,91 @@
    }
    ```
 
+4. 删除记录，关键词`DELETE`
+
+   ```bash
+   $ curl -X DELETE 'localhost:9200/accounts/person/1'
+   ```
+
+5. 更新记录，重新`PUT`即可。
+
+   ```bash
+   $ curl -X PUT 'localhost:9200/accounts/person/1' -d '
+   {
+       "user" : "张三",
+       "title" : "工程师",
+       "desc" : "数据库管理，软件开发"
+   }' 
+   ```
+
+   返回的结果中`_version`迭代为2， `_result`更新为`updated`， `created`更新为`false`。
+
+   ```bash
+   {
+     "_index":"accounts",
+     "_type":"person",
+     "_id":"1",
+     "_version":2,
+     "result":"updated",
+     "_shards":{"total":2,"successful":1,"failed":0},
+     "created":false
+   }
+   ```
+
+6. 数据查询，返回所有记录。直接`GET`。
+
+   ```bash
+   $ curl 'localhost:9200/accounts/person/_search'
+   ```
+
+   返回结果的 `took`字段表示该操作的耗时（单位为毫秒），`timed_out`字段表示是否超时，`hits`字段表示命中的记录，`total`表示返回记录数，`max_score`表示最高的匹配程度。`score`按降序排列。
+
+   ```bash
+   {
+     "took":2,
+     "timed_out":false,
+     "_shards":{"total":5,"successful":5,"failed":0},
+     "hits":{
+       "total":2,
+       "max_score":1.0,
+       "hits":[
+         {
+           "_index":"accounts",
+           "_type":"person",
+           "_id":"AV3qGfrC6jMbsbXb6k1p",
+           "_score":1.0,
+           "_source": {
+             "user": "李四",
+             "title": "工程师",
+             "desc": "系统管理"
+           }
+         },
+         {
+           "_index":"accounts",
+           "_type":"person",
+           "_id":"1",
+           "_score":1.0,
+           "_source": {
+             "user" : "张三",
+             "title" : "工程师",
+             "desc" : "数据库管理，软件开发"
+           }
+         }
+       ]
+     }
+   }
+   ```
+
+7. match查询
+
+   `match`属性是查找某属性下的某一个字段，`from`表示从位置1开始查询，`size`表示返回的结果数。
+
+   ```bash
+   $ curl 'localhost:9200/accounts/person/_search'  -d '
+   {
+     "query" : { "match" : { "desc" : "管理" }},
+     "from": 1,
+     "size": 1
+   }'
+   ```
+
