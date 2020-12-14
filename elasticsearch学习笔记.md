@@ -22,6 +22,10 @@
 
 3. Type：document的分组，每个type应该结构相似
 
+4. MySQL和ES的对照
+
+   ![mysql和es比较图](mysql和es比较图) 
+
 **二、 新建和删除index**
 
 1. 新建index：关键词 **PUT** 
@@ -37,6 +41,14 @@
      "shards_acknowledged":true
    }
    ```
+
+   ```bash
+   $ curl -X PUT "localhost:9200/customer/_doc/1?pretty" -H 'Content-Type: application/json' -d'{
+     "name": "John Doe"
+   }
+   ```
+
+   
 
 2. 删除Index：关键词 **DELETE**
 
@@ -202,16 +214,67 @@
    }
    ```
 
-7. match查询
+7. match_all查询
 
-   `match`属性是查找某属性下的某一个字段，`from`表示从位置1开始查询，`size`表示返回的结果数。
+   `match_all`属性是查找某属性下的某一个字段，`from`表示从位置1开始查询，`size`表示返回的结果数。
 
    ```bash
    $ curl 'localhost:9200/accounts/person/_search'  -d '
    {
-     "query" : { "match" : { "desc" : "管理" }},
+     "query" : { "match_all": {}},
+     "sort" : [{ "desc" : "管理" }],
      "from": 1,
      "size": 1
    }'
+   ```
+
+8. match_phrase查询
+
+   ```console
+   GET /bank/_search
+   {
+     "query": { "match_phrase": { "address": "mill lane" } }
+   }
+   ```
+
+9. bool查询
+
+   bool查询分为三个关键词：must表示查找中必须有的，must_not表示查找中必须没有的，should表示查找中最好有的，表现在结果的排序不再按照score
+
+   ```console
+   GET /bank/_search
+   {
+     "query": {
+       "bool": {
+         "must": [
+           { "match": { "age": "40" } }
+         ],
+         "must_not": [
+           { "match": { "state": "ID" } }
+         ]
+       }
+     }
+   }
+   ```
+
+   Filter增加过滤条件
+
+   ```console
+   GET /bank/_search
+   {
+     "query": {
+       "bool": {
+         "must": { "match_all": {} },
+         "filter": {
+           "range": {
+             "balance": {
+               "gte": 20000,
+               "lte": 30000
+             }
+           }
+         }
+       }
+     }
+   }
    ```
 
